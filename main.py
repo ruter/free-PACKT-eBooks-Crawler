@@ -30,8 +30,9 @@ except:
     print("Load cookies failed!")
 
 
-def get_save_dir(name=None):
-    pass
+def get_save_path(name=None):
+    save_path = os.path.join(SAVE_DIR, name)
+    return save_path
 
 
 def get_time_now():
@@ -84,7 +85,15 @@ def get_free_ebook():
         get_free_ebook()
 
 
-def store_ebooks():
+def download_ebook(url=None):
+    try:
+        res = session.get(url, headers=headers)
+        return res.content
+    except Exception as e:
+        print("Download failed: [{0}]".format(e))
+
+
+def save_ebooks():
     ebooks_url = "https://www.packtpub.com/account/my-ebooks"
     response = session.get(ebooks_url, headers=headers)
 
@@ -93,7 +102,21 @@ def store_ebooks():
 
         doc = pq(response.content)
         book_list = doc('#product-account-list .product-line')
-        # TODO: Save books
+        for book in book_list:
+            name = book # TODO
+            save_dir = get_save_path(name)
+            if os.path.exists(save_dir):
+                print("{0} already existed!")
+            else:
+                os.mkdir(save_dir)
+                save_path = os.path.join(save_dir, "{0}.pdf".format(name))
+                url = book  # TODO
+                pdf = download_ebook(url)
+                try:
+                    with open(save_path, 'wb') as f:
+                        f.write(pdf)
+                except Exception as e:
+                    print("Save error: [{0}] trying next...".format(e))
     else:
         login(cf.account['email'], cf.account['password'], cf.op, cf.form_id)
         store_ebooks()
@@ -111,12 +134,13 @@ if __name__ == '__main__':
     options = {
         '0': quit,
         '1': get_free_ebook,
+        '2': save_ebooks,
         '3': auto_claim
     }
     step = input(
         """Choose an option:\n
         1. Claim today's free ebook\n
-        2. Save your ebooks\n
+        2. Download all your ebooks\n
         3. Auto claim free ebooks\n
         0. Quit\n
         Your choice: """)
