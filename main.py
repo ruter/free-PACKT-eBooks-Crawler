@@ -74,7 +74,7 @@ def get_free_ebook():
     doc = pq(response.content)
     name = doc(".dotd-title > h2").text()
     claim_url = PACKT_URL + doc('.free-ebook > a').attr("href")
-    print(name)
+    print("Claim {0} now...".format(name))
     response = session.get(claim_url, headers=headers)
 
     if response.status_code == 200:
