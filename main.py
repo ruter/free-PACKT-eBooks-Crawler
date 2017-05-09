@@ -1,8 +1,9 @@
 # -*- coding: utf-8 -*-
 
+import os
 import time
 from http import cookiejar
-from datetime import datetime
+from datetime import datetime, timedelta, timezone
 
 import requests
 from pyquery import PyQuery as pq
@@ -10,6 +11,8 @@ from pyquery import PyQuery as pq
 import config as cf
 
 PACKT_URL = "https://www.packtpub.com"
+
+SAVE_DIR = os.path.join(os.getcwd(), 'eBooks')
 
 headers = {
     "Host": "www.packtpub.com",
@@ -25,6 +28,18 @@ try:
     session.cookies.load(ignore_discard=True)
 except:
     print("Load cookies failed!")
+
+
+def get_save_dir(name=None):
+    pass
+
+
+def get_time_now():
+    tz_utc_8 = timezone(timedelta(hours=8))
+    now = datetime.now()
+    dt = now.replace(tzinfo=tz_utc_8)
+    dt_str = dt.strftime('%Y-%m-%d %H:%M:%S')
+    return dt_str
 
 
 def get_form_build_id():
@@ -63,7 +78,7 @@ def get_free_ebook():
 
     if response.status_code == 200:
         session.cookies.save()
-        print("Finished!")
+        print("========== Finished at {0} ==========".format(get_time_now()))
     else:
         login(cf.account['email'], cf.account['password'], cf.op, cf.form_id)
         get_free_ebook()
