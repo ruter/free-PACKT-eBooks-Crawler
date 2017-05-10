@@ -103,14 +103,14 @@ def save_ebooks():
         doc = pq(response.content)
         book_list = doc('#product-account-list .product-line')
         for book in book_list:
-            name = book  # TODO: get book name
+            name = book.attr('title').rstrip(' [eBook]')
             save_dir = get_save_path(name)
             if os.path.exists(save_dir):
                 print("{0} already existed!")
             else:
                 os.mkdir(save_dir)
                 save_path = os.path.join(save_dir, "{0}.pdf".format(name))
-                url = book  # TODO: get pdf url
+                url = book.find('.product-buttons-line .download-container > a').attr('href')
                 pdf = download_ebook(url)
                 try:
                     with open(save_path, 'wb') as f:
