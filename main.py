@@ -88,6 +88,8 @@ def get_free_ebook():
 def download_ebook(url=None):
     try:
         res = session.get(url, headers=headers, allow_redirects = False)
+        if res.status_code == 200:
+            return res
         dl_url = res.headers['Location']
         res = session.get(dl_url, stream=True)
         if res.status_code == 200:
@@ -109,7 +111,7 @@ def save_ebooks():
         session.cookies.save()
 
         doc = pq(response.content)
-        book_list = doc('#product-account-list .product-line')
+        book_list = doc('#product-account-list .product-line.unseen')
         for book in book_list:
             book = pq(book)
             try:
@@ -135,6 +137,7 @@ def save_ebooks():
                     print("{0} has been saved!\nTrying next...".format(name))
                 except Exception as e:
                     print("Save error: [{0}] trying next...".format(e))
+        print("========== Finished at {0} ==========".format(get_time_now()))
     else:
         login(cf.account['email'], cf.account['password'], cf.op, cf.form_id)
         save_ebooks()
