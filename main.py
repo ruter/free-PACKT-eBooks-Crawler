@@ -145,7 +145,7 @@ def auto_claim():
         print("Start...")
         get_free_ebook()
         print("Sleep...")
-        time.sleep(28800)
+        time.sleep(cf.frequency * 3600)
 
 
 if __name__ == '__main__':

@@ -7,3 +7,5 @@ account = {
 
 op = "Login"
 form_id = "packt_user_login_form"
+
+frequency = 8
