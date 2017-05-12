@@ -87,13 +87,21 @@ def get_free_ebook():
 
 def download_ebook(url=None):
     try:
-        res = session.get(url, headers=headers)
-        return res.content
+        res = session.get(url, headers=headers, allow_redirects = False)
+        dl_url = res.headers['Location']
+        res = session.get(dl_url, stream=True)
+        if res.status_code == 200:
+            return res
     except Exception as e:
         print("Download failed: [{0}]".format(e))
 
 
 def save_ebooks():
+    if not os.path.exists(SAVE_DIR):
+        os.mkdir(SAVE_DIR)
+
+    print("Start download your eBooks...")
+
     ebooks_url = "https://www.packtpub.com/account/my-ebooks"
     response = session.get(ebooks_url, headers=headers)
 
@@ -103,23 +111,33 @@ def save_ebooks():
         doc = pq(response.content)
         book_list = doc('#product-account-list .product-line')
         for book in book_list:
-            name = book.attr('title').rstrip(' [eBook]')
+            book = pq(book)
+            try:
+                name = book.attr('title').rstrip(' [eBook]')
+            except:
+                name = book.attr('title')
+            
             save_dir = get_save_path(name)
             if os.path.exists(save_dir):
-                print("{0} already existed!")
+                print("{0} already existed!".format(name))
             else:
                 os.mkdir(save_dir)
                 save_path = os.path.join(save_dir, "{0}.pdf".format(name))
-                url = book.find('.product-buttons-line .download-container > a').attr('href')
+                url = PACKT_URL + book.find('.product-buttons-line .download-container').eq(1).children('a').attr(
+                    'href')
                 pdf = download_ebook(url)
                 try:
                     with open(save_path, 'wb') as f:
-                        f.write(pdf)
+                        for chunk in pdf.iter_content(chunk_size=1024):
+                            if chunk:
+                                f.write(chunk)
+                                f.flush()
+                    print("{0} has been saved!\nTrying next...".format(name))
                 except Exception as e:
                     print("Save error: [{0}] trying next...".format(e))
     else:
         login(cf.account['email'], cf.account['password'], cf.op, cf.form_id)
-        store_ebooks()
+        save_ebooks()
 
 
 def auto_claim():
